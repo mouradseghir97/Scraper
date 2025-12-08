@@ -8,8 +8,7 @@ on:
  
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
-  # RECOMMENDATION: Downgrade to 3.11. Azure support for 3.13 is very new/experimental 
-  # and often causes "No functions found" errors. 3.11 is the stable standard.
+  # Keeping 3.11 is the right choice for stability
   PYTHON_VERSION: '3.11'
  
 jobs:
@@ -30,12 +29,21 @@ jobs:
       - name: Install dependencies (Flex Consumption Mode)
         run: |
           python -m pip install --upgrade pip
-          # CRITICAL FIX: Install into .python_packages/lib/site-packages
-          pip install --target=".python_packages/lib/site-packages" -r requirements.txt
+          # --- CRITICAL FIX START ---
+          # We force 'manylinux2014_x86_64' to ensure C-libraries like lxml 
+          # are compatible with the Azure Linux environment, not just the GitHub runner.
+          pip install --target=".python_packages/lib/site-packages" \
+              --platform manylinux2014_x86_64 \
+              --implementation cp \
+              --python-version 3.11 \
+              --only-binary=:all: \
+              --upgrade \
+              -r requirements.txt
+          # --- CRITICAL FIX END ---
  
       - name: Zip artifact for deployment
         run: |
-          # CRITICAL FIX: Explicitly include the hidden .python_packages folder
+          # Explicitly include the hidden .python_packages folder
           # We use -r to recurse and -x to exclude git/github junk
           zip -r release.zip . -x "venv/*" ".git/*" ".github/*" "__pycache__/*"
  
