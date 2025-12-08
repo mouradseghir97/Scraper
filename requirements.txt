@@ -1,0 +1,8 @@
+azure-functions
+azure-storage-blob
+azure-cosmos
+feedparser
+requests
+trafilatura
+beautifulsoup4
+lxml
