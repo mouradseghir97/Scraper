@@ -8,8 +8,7 @@ on:
  
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
-  # Keeping 3.11 is the right choice for stability
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.11' # Keeping 3.11 for stability
  
 jobs:
   build:
@@ -29,17 +28,20 @@ jobs:
       - name: Install dependencies (Flex Consumption Mode)
         run: |
           python -m pip install --upgrade pip
-          # --- CRITICAL FIX START ---
-          # We force 'manylinux2014_x86_64' to ensure C-libraries like lxml 
-          # are compatible with the Azure Linux environment, not just the GitHub runner.
+          # STEP 1: Install standard requirements normally.
+          # This allows 'feedparser' to install 'sgmllib3k' from source (fixing the previous error).
+          pip install --target=".python_packages/lib/site-packages" -r requirements.txt
+ 
+          # STEP 2: Force-fix 'lxml' for Azure Linux.
+          # We overwrite the generic lxml with the specific manylinux binary needed for the cloud.
           pip install --target=".python_packages/lib/site-packages" \
               --platform manylinux2014_x86_64 \
               --implementation cp \
               --python-version 3.11 \
               --only-binary=:all: \
+              --force-reinstall \
               --upgrade \
-              -r requirements.txt
-          # --- CRITICAL FIX END ---
+              lxml
  
       - name: Zip artifact for deployment
         run: |
