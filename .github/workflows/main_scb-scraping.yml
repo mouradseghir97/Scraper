@@ -8,7 +8,8 @@ on:
  
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
-  PYTHON_VERSION: '3.11' # Keeping 3.11 for stability
+  # MATCHING AZURE: Set this to 3.13 to match your cloud environment
+  PYTHON_VERSION: '3.13'
  
 jobs:
   build:
@@ -28,25 +29,24 @@ jobs:
       - name: Install dependencies (Flex Consumption Mode)
         run: |
           python -m pip install --upgrade pip
-          # STEP 1: Install standard requirements normally.
-          # This allows 'feedparser' to install 'sgmllib3k' from source (fixing the previous error).
-          pip install --target=".python_packages/lib/site-packages" -r requirements.txt
- 
-          # STEP 2: Force-fix 'lxml' for Azure Linux.
-          # We overwrite the generic lxml with the specific manylinux binary needed for the cloud.
+          # STEP 1: Install 'lxml' specifically for Python 3.13.
+          # We use a newer manylinux tag (manylinux_2_28) because 3.13 is new.
           pip install --target=".python_packages/lib/site-packages" \
-              --platform manylinux2014_x86_64 \
+              --platform manylinux_2_28_x86_64 \
               --implementation cp \
-              --python-version 3.11 \
+              --python-version 3.13 \
               --only-binary=:all: \
-              --force-reinstall \
               --upgrade \
               lxml
  
+          # STEP 2: Install the rest normally.
+          # We skip dependencies for lxml to avoid overwriting the binary we just fixed.
+          pip install --target=".python_packages/lib/site-packages" \
+              --prefer-binary \
+              -r requirements.txt
+ 
       - name: Zip artifact for deployment
         run: |
-          # Explicitly include the hidden .python_packages folder
-          # We use -r to recurse and -x to exclude git/github junk
           zip -r release.zip . -x "venv/*" ".git/*" ".github/*" "__pycache__/*"
  
       - name: Upload artifact for deployment job
