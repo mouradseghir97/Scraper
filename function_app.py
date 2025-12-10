@@ -26,7 +26,7 @@ COSMOS_KEY = os.environ.get("COSMOS_KEY")
  
 # Container Names
 CONTAINER_TEXT = "raw-text"
-CONTAINER_STATE = "scraper-state" # Will hold validators.json and seen.json
+CONTAINER_STATE = "scraper-state2" # Will hold validators.json and seen.json
 DB_NAME = "ScraperDB"
 DB_CONTAINER = "Articles"
  
