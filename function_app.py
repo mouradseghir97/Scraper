@@ -183,7 +183,7 @@ def DailyScraper(myTimer: func.TimerRequest) -> None:
     session.headers.update(REQUEST_HEADERS)
    
     # Define cutoff (e.g., last 24 hours)
-    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2)
+    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=20000)
  
     processed_count = 0
  
